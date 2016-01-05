@@ -1,8 +1,12 @@
 'use strict';
 
-let config = require('./gulp.config')();
 let gulp = require('gulp');
+let path = require('path');
+let config = require(path.join(__dirname, 'gulp.config'))();
+
+let del = require('del');
 let args = require('yargs').argv;
+let babel = require('gulp-babel');
 let util = require('gulp-util');
 let print = require('gulp-print');
 let taskListing = require('gulp-task-listing');
@@ -42,10 +46,22 @@ gulp.task('bump', function () {
         .pipe(gulp.dest(config.root));
 });
 
+gulp.task('clean:build', function (done) {
+    let files = [].concat(path.join(config.build, '**'));
+    clean(files, done);
+});
+
+gulp.task('build:server', ['clean:build'], function () {
+    return gulp
+        .src(config.serverSrc)
+        .pipe(babel())
+        .pipe(gulp.dest(config.serverBuild));
+});
+
 // utility methods
 function clean (path, done) {
     log('Cleaning: ' + util.colors.blue(path));
-    del(path, done);
+    del(path).then(done());
 }
 
 function log (msg) {
